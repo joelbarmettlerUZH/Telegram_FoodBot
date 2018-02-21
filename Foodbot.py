@@ -37,7 +37,7 @@ def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id,
                      text=PIZZA+BURGER+'_Wellkomme bem Foodbot vo de UZH!_'+CHICKEN+PASTA+'\n\n'
                               'Schriib mer eifach de Name vo de Mensa ond de Wochetag, ond ech scheck der de aktuelli Menüplan zrogg!\n\n'
-                              'Verfüegbar send: *Zentrum | Irchel | Binz*'
+                              'Verfüegbar send: *Zentrum | Irchel | Binz* \n'
                               'Biispel: Irchel Ziistig, Binz, Zentrum morn',
                      parse_mode=telegram.ParseMode.MARKDOWN)
 

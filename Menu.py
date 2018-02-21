@@ -178,7 +178,8 @@ class MenuPlan():
         CHICKEN = u'\U0001F357'
         MEAT = u'\U0001F356'
         SHRIMP = u'\U0001F364'
-        meat_emojis = [PIZZA, BURGER, CHICKEN, MEAT, SHRIMP]
+        SUSHI2 = u'\U0001F363'
+        meat_emojis = [PIZZA, BURGER, CHICKEN, MEAT, SHRIMP, SUSHI2]
 
         PASTA = u'\U0001F35D'
         RICE = u'\U0001F359'
@@ -186,9 +187,10 @@ class MenuPlan():
         RANDOM = u'\U0001F35B'
         PASTA2 = u'\U0001F35C'
         BREAD = u'\U0001F35E'
-        SUSHI2 = u'\U0001F363'
         TOPF = u'\U0001F372'
-        vegi_emojis = [PASTA, RICE, RICESOUP, RANDOM, PASTA2, BREAD, SUSHI2, TOPF]
+        CORN = u'\U0001F33D'
+        TOMATO = u'\U0001F345'
+        vegi_emojis = [PASTA, RICE, RICESOUP, RANDOM, PASTA2, BREAD, TOPF, CORN, TOMATO]
 
         pasta_emojis = [PASTA, RANDOM, TOPF, PASTA2, PASTA]
 
