@@ -2,7 +2,7 @@
 
 This Telegram bot is developed for all students at the swiss University of zurich to quickly get informed about the different meals they can get at the most popular university cafeterias.
 
-*Kindly note that the bot my not always be accessible since it runs on my personal computer which needs some sleep at night*
+*The bot is now online and reachable 24/7 and no longer running on my Raspberry Pi but on Heroku Server!*
 
 [![Talk to Telegram bot now](https://www.zusammenfassung.schule/github/telegram_logo.png)][bot]
 
