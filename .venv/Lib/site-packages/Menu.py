@@ -144,7 +144,7 @@ class MenuPlan():
 
         # assemble menu description together and add markdown formatting
         def formatMenu(name, ingredients, kind=0):
-            string = "*" + self.getEmoji(1, kind) + "   " + name[:-1] + "   " + self.getEmoji(1, kind) + "*\n"
+            string = "*" + self.getEmoji(1, kind) + "   " + name + "   " + self.getEmoji(1, kind) + "*\n"
             for ingredient in ingredients:
                 string += ingredient+"\n"
             return string+"\n"
