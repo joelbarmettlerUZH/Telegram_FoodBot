@@ -7,9 +7,8 @@ import datetime
 import random
 
 class MenuPlan():
-
     # Dicts of possible argument that the bot shall understand: different restaurants, weekdas and arguments that manipulate the current date
-    mensi = {"zentrum": "zentrum-mensa", "irchel": "mensa-uzh-irchel", "binz": "mensa-uzh-binzmuehle"}
+    mensi = {"zentrum": "zentrum-mensa", "irchel": "mensa-uzh-irchel", "binz": "mensa-uzh-binzmuehle", "rämi": "raemi59", "platte": "cafeteria-uzh-plattenstrasse"}
     weekdays = {"montag":0, "dienstag":1, "mittwoch":2, "donnerstag":3, "freitag":4, "samstag":5, "sonntag":6}
     arguments = {"vorgestern":-2, "gestern":-1, "heute":0, "hüt":0, "morgen":+1, "morn":+1, "übermorgen":+2, "übermorn":+2}
 
@@ -138,17 +137,23 @@ class MenuPlan():
 
         # Take the first MENUS number of menus of the list
         MENUS = 3
+        if chosen_mensa in ["platte", "rämi"]:
+            MENUS = 2
         # The menu name always is a heading of strength 3
         menuNames = menuDiv.find_all("h3")[:MENUS]
         # while the description is a normal paragraph
-        menuDescriptions = menuDiv.find_all("p")[:MENUS]
+        rawMenuDescriptions = menuDiv.find_all("p")
+        menuDescriptions = [None for _ in range(MENUS)]
+
+        print(rawMenuDescriptions)
+
         # Iterate through all menus and use a regex to get the corresponding parts
         for n in range(MENUS):
-            menuNames[n] = re.search(r'<h3>\s+(.*?)<span>', str(menuNames[n])).group(1)
-            menuDescriptions[n] = re.search(r'<p>\s+(.*?) <br/><br/>', str(menuDescriptions[n])).group(1)
+            menuNames[n] = re.search(r'<h3>(.*?)<span>', str(menuNames[n])).group(1)
+            menuDescriptions[n] = str(rawMenuDescriptions[(n*2)]).replace("</p>", "").replace("<p> ", "")
 
         # Split the created menu descriptions at linebreaks to later assemble it again
-        for n in range(len(menuNames)):
+        for n in range(MENUS):
             menuDescriptions[n] = menuDescriptions[n].split("<br/> ")
 
         # assemble menu description together and add markdown formatting
@@ -206,5 +211,5 @@ class MenuPlan():
 
 # Code to test the class, is not executed when bot is started
 if __name__ == "__main__":
-    menu = MenuPlan("benz blabla", False)
+    menu = MenuPlan("rämi", False)
     print(menu.get())
