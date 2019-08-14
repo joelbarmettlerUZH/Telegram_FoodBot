@@ -127,6 +127,7 @@ class MenuPlan():
         MENUS = 3
         if chosen_mensa in ["platte", "rämi"]:
             MENUS = 2
+        MENUS = min(MENUS, len(menuDiv.find_all("h3")))
         # The menu name always is a heading of strength 3
         menuNames = menuDiv.find_all("h3")[:MENUS]
         # while the description is a normal paragraph
@@ -192,5 +193,5 @@ class MenuPlan():
 
 # Code to test the class, is not executed when bot is started
 if __name__ == "__main__":
-    menu = MenuPlan("irchel gester")
+    menu = MenuPlan("irchel")
     print(menu.get())
