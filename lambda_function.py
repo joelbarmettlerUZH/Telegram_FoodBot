@@ -15,13 +15,13 @@ CHICKEN = u'\U0001F357'
 # Define the funciton that shall be executed on Start command /start, which is automatically send when starting the bot
 def start():
     # Sending some welcome messages and instructions about the bot usage
-    return PIZZA + BURGER + '_Wellkomme bem Foodbot vo de UZH!_' + CHICKEN + PASTA + '\n\nSchriib mer eifach de Name vo de Mensa ond de Wochetag, ond ech scheck der de aktuelli Menüplan zrogg!\n\nVerfüegbar send: *Zentrum | Irchel | Binz | Rämi | Platte* \nBiispel: Irchel Ziistig, Binz, Zentrum morn'
+    return PIZZA + BURGER + '_Wellkomme bem Foodbot vo de ETH!_' + CHICKEN + PASTA + '\n\nSchriib mer eifach de Name vo de Mensa ond de Wochetag, ond ech scheck der de aktuelli Menüplan zrogg!\n\nVerfüegbar send: *Clausiusbar | Polyterasse | Foodlab | Foodtrailer | Gessbar | Fusionmeal* \nBiispel: Polyterasse Ziistig, Clausiusbar, Fusionmeal morn'
 
 
 # Function that is being executed when /help is requested by the user
 def help():
     # send back  help instructions
-    return 'Schriib de Name vo de Mensa, vo wellere du s Menü wetsch gseh: *Zentrum | Irchel | Binz | Rämi | Platte*, ond en Ziitponkt wie: *hött | öbermorn | friitig*, etc.'
+    return 'Schriib de Name vo de Mensa, vo wellere du s Menü wetsch gseh: *Clausiusbar | Polyterasse | Foodlab | Foodtrailer | Gessbar | Fusionmeal*, ond en Ziitponkt wie: *hött | öbermorn | friitig*, etc.'
 
 
 # Function reads the users messages and returns the requested menu plan
@@ -38,8 +38,7 @@ def send_message(text, chat_id):
     print(url)
     requests.get(url)
 
-def lambda_handler(event, context):
-    message = json.loads(event['body'])
+def lambda_handler(message, context):
     chat_id = message['message']['chat']['id']
     msg = message['message']['text']
 

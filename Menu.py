@@ -4,15 +4,22 @@ import re
 import datetime
 import random
 
+
+request_headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
+}
+
 class MenuPlan():
     # Dicts of possible argument that the bot shall understand: different restaurants, weekdas and arguments that manipulate the current date
-    mensi = {"zentrum": "zentrum-mensa", "irchel": "mensa-uzh-irchel", "binz": "mensa-uzh-binzmuehle", "rämi": "raemi59", "platte": "cafeteria-uzh-plattenstrasse"}
-    weekdays = {"montag":0, "dienstag":1, "mittwoch":2, "donnerstag":3, "freitag":4, "samstag":5, "sonntag":6}
-    arguments = {"vorgestern":-2, "gestern":-1, "heute":0, "hüt":0, "morgen":+1, "morn":+1, "übermorgen":+2, "übermorn":+2}
+    mensi = {"clausiusbar": "4", "polyterrasse": "12", "foodlab": "28", "foodtrailer": "9", "gessbar": "11",
+             "fusionmeal": "21"}
+    weekdays = {"montag": 0, "dienstag": 1, "mittwoch": 2, "donnerstag": 3, "freitag": 4, "samstag": 5, "sonntag": 6}
+    arguments = {"vorgestern": -2, "gestern": -1, "heute": 0, "hüt": 0, "morgen": +1, "morn": +1, "übermorgen": +2,
+                 "übermorn": +2}
 
     # Constructor that takes the users response
     def __init__(self, response):
-        print("Request was sent for "+response)
+        print("Request was sent for " + response)
         response = response.lower().split(" ")
         # The first part of the response shall be the mensas name
         self._mensa = response[0]
@@ -51,14 +58,13 @@ class MenuPlan():
             distances = newDistances
         return distances[-1]
 
-
     def get(self):
         # Calculate certainty between two strings
         def certain(shorter, longer, sim, treshold=0.5):
             if len(shorter) > len(longer):
                 shorter, longer = longer, shorter
             similarity = ((len(longer) - sim) / len(longer))
-            print("Similarity between "+shorter+" and "+longer+" is: "+str(similarity))
+            print("Similarity between " + shorter + " and " + longer + " is: " + str(similarity))
             if similarity < treshold:
                 return "Sorry, aber ech weiss ned was du mer versuechsch z säge " + u'\U0001F623'
 
@@ -67,8 +73,9 @@ class MenuPlan():
         for mensa in self.mensi.keys():
             similarities[mensa] = (self.levenshtein(mensa, self._mensa))
         # Assume the one mensa do be chosen with the shortest edit distance
-        chosen_mensa = min(similarities, key=similarities.get)
-        c = certain(chosen_mensa, self._mensa, min(similarities.values()))
+        mensa_name = min(similarities, key=similarities.get)
+        chosen_mensa = self.mensi[mensa_name]
+        c = certain(mensa_name, self._mensa, min(similarities.values()))
         if c:
             return c
 
@@ -79,14 +86,15 @@ class MenuPlan():
         day_certainty = min(day_similarities.values())
         chosen_day = min(day_similarities, key=day_similarities.get)
 
+        chosen_day_index = self.weekdays[chosen_day]  # Freitag, 4
+        today_index = datetime.datetime.today().weekday()  # Mittwoch, 2
+        chosen_day_date = datetime.datetime.today() + datetime.timedelta(days=chosen_day_index - today_index)
+
         # Do same with the Arguments
         arg_similarities = {}
         for arg in self.arguments.keys():
             arg_similarities[arg] = (self.levenshtein(arg, self._day))
         arg_certainty = min(arg_similarities.values())
-
-        # Get current date time
-        date = datetime.datetime.today()
 
         # When the certainty that the second user input was an argument and not a day
         if arg_certainty < day_certainty:
@@ -94,66 +102,61 @@ class MenuPlan():
             # Compute chosen argument
             chosen_arg = min(arg_similarities, key=arg_similarities.get)
             # add the amount of days to the current date
-            date += datetime.timedelta(days=self.arguments[chosen_arg])
-            # Get weekday of manipulated date
-            chosen_day = date.weekday()
-            for day, arg in self.weekdays.items():
-                # Find the string belonging to the weekdate
-                if chosen_day == arg:
-                    chosen_day = day
-                    break
+            chosen_day_date = datetime.datetime.today() + datetime.timedelta(days=self.arguments[chosen_arg])
 
         c = certain(chosen_day, self._day, min(day_similarities.values()))
         if c:
             return c
 
+        if (chosen_day_date + datetime.timedelta(minutes=1)) < datetime.datetime.today()\
+                and arg_certainty > day_certainty:
+            chosen_day_date += datetime.timedelta(days=7)
+
+        date_str = chosen_day_date.strftime("%Y-%m-%d")
+
         # Print message on server
-        print("Translating CH into DE making request to "+chosen_mensa.title()+" "+chosen_day.title())
+        print("Translating CH into DE making request to " + chosen_mensa.title() + " " + date_str)
         # Non-supported days (days where no food is provided) return a default string
-        if(chosen_day == "samstag" or chosen_day == "sonntag"):
-            return("A dem Tag gids leider kei Esse i de " + chosen_mensa.title() + " mensa.. " + u'\U0001F613')
+        if (chosen_day == "samstag" or chosen_day == "sonntag"):
+            return ("A dem Tag gids leider kei Esse i de " + chosen_mensa.title() + " mensa.. " + u'\U0001F613')
 
         # Defined file name to not access website for every request
-        filename = "./tmp/" + chosen_mensa.title()+"/"+str(datetime.datetime.now())[:10]+".pkl"
+        filename = "./tmp/" + chosen_mensa.title() + "/" + str(datetime.datetime.now())[:10] + ".pkl"
 
         # Define URL of uzh website that stores the menu plan
-        url = "http://www.mensa.uzh.ch/de/menueplaene/" + self.mensi[chosen_mensa] + "/" + chosen_day + ".html"
-        print("Scraping URL: "+url)
+        url = f"https://ethz.ch/de/campus/erleben/gastronomie-und-einkaufen/gastronomie/menueplaene/offerDay.html?language=de&id={chosen_mensa}&date={date_str}"
+        print("Scraping URL: " + url)
         # Get HTML content and find part of website that contains the menu in div newslist-descrioption
-        http = requests.get(url).text
-        menuDiv = BeautifulSoup(http, "html.parser").find("div", {"class": "newslist-description"})
+        http = requests.get(url, headers=request_headers).text
+        html = BeautifulSoup(http, "html.parser")
+        menu_table = html.find("table")
 
         # Take the first MENUS number of menus of the list
-        MENUS = 3
-        if chosen_mensa in ["platte", "rämi"]:
-            MENUS = 2
-        MENUS = min(MENUS, len(menuDiv.find_all("h3")))
-        # The menu name always is a heading of strength 3
-        menuNames = menuDiv.find_all("h3")[:MENUS]
-        # while the description is a normal paragraph
-        rawMenuDescriptions = menuDiv.find_all("p")
-        menuDescriptions = [None for _ in range(MENUS)]
-
-        # Iterate through all menus and use a regex to get the corresponding parts
-        for n in range(MENUS):
-            menuNames[n] = re.search(r'<h3>(.*?)<span>', str(menuNames[n])).group(1)
-            menuDescriptions[n] = str(rawMenuDescriptions[(n*2)]).replace("</p>", "").replace("<p> ", "")
-
-        # Split the created menu descriptions at linebreaks to later assemble it again
-        for n in range(MENUS):
-            menuDescriptions[n] = menuDescriptions[n].split("<br/> ")
+        rows = menu_table.findAll("tr")[2:]
+        menus = []
+        for row in rows[:3]:
+            cols = row.findAll("td")
+            name = cols[0].text
+            desc = str(cols[1]).replace("<td>", "").replace("</td>", "")
+            desc = desc.replace("<strong>", "**").replace("</strong>", "**")
+            desc = desc.split("<div")[0]
+            desc = desc.split("<br/>")
+            menus.append({"name": name, "desc": desc})
 
         # assemble menu description together and add markdown formatting
         def formatMenu(name, ingredients, kind=0):
             string = "*" + self.getEmoji(1, kind) + "   " + name + "   " + self.getEmoji(1, kind) + "*\n"
             for ingredient in ingredients:
-                string += ingredient+"\n"
-            return string+"\n"
+                string += ingredient + "\n"
+            return string + "\n"
 
         # Add a string message to the user and append the different menu descriptions
-        string = "Menü i de *"+chosen_mensa.title()+"* Mensa am *"+chosen_day.title()+", " +date.strftime('%d.%m')+ "*\n\n"
-        for menu in range(MENUS):
-            string += formatMenu(menuNames[menu], menuDescriptions[menu], menu)
+        wkdays = ["Mäntig", "Zistig", "Mettwoch", "Donnstig", "Friitig", "Samstig", "Sonntig"]
+        string = "Menü i de *" + chosen_mensa.title() + "* Mensa am *" + wkdays[chosen_day_date.weekday()] + ", " + chosen_day_date.strftime('%d.%m.%Y') + "*\n\n"
+        i = 0
+        for menu in menus:
+            string += formatMenu(menu["name"], menu["desc"], i)
+            i += 1
         return string
 
     @staticmethod
@@ -184,14 +187,13 @@ class MenuPlan():
         MONEY = u'\U0001F4B0'
 
         if kind == 0:
-            return MenuPlan.getEmoji(number-1, kind) + random.choice(meat_emojis)
+            return MenuPlan.getEmoji(number - 1, kind) + random.choice(meat_emojis)
         if kind == 1:
-            return MenuPlan.getEmoji(number-1, kind) + random.choice(vegi_emojis)
-        return MenuPlan.getEmoji(number-1, kind) + random.choice(pasta_emojis)
-
+            return MenuPlan.getEmoji(number - 1, kind) + random.choice(vegi_emojis)
+        return MenuPlan.getEmoji(number - 1, kind) + random.choice(pasta_emojis)
 
 
 # Code to test the class, is not executed when bot is started
 if __name__ == "__main__":
-    menu = MenuPlan("irchel")
+    menu = MenuPlan("foodmarket friitig")
     print(menu.get())
