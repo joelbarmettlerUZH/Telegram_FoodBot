@@ -133,3 +133,6 @@ def unknown(bot, update):
 
 #### License
 This project was originally created by Joel Barmettler in the year of 2018. I release this project under the MIT license.
+
+
+Hire us: [Software Entwickler in Zürich](https://polygon-software.ch)!
